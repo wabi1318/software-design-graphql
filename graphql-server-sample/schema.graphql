@@ -1,0 +1,48 @@
+type PostTag {
+  name: String!
+}
+
+type Post {
+  id: ID!
+  title: String!
+  body: String!
+  tags: [PostTag!]!
+  author: Author!
+}
+
+interface User {
+  name: String!
+}
+
+type Author implements User {
+  id: ID!
+  name: String!
+  posts: [Post!]!
+}
+
+input CreatePostInput {
+  title: String!
+  body: String!
+  tags: [String!]!
+  publishedAt: String!
+  author: String!
+}
+
+type CreatePostSuccess {
+  post: Post!
+}
+
+type Error {
+  message: String!
+}
+
+union CreatePostResult = CreatePostSuccess | Error
+
+type Query {
+  authors: [Author!]!
+  posts(tags: [String!]): [Post!]!
+}
+
+type Mutation {
+  createPost(input: CreatePostInput!): CreatePostResult!
+}

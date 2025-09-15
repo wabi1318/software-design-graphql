@@ -12,6 +12,7 @@ export const db = {
     2: {
       title: "New Relic で Prisma のパフォーマンスを計測してみた",
       author: "YutaUra",
+      
       body: `つい先日リニューアルされた スタディサプリ 中学講座 の開発チームでインターン生をしている @Yut...`,
       tags: ["Prisma", "Observability"],
       publishedAt: "2022-04-01",

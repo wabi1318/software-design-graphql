@@ -44,16 +44,47 @@ class TagsDataSource {
   }
 }
 
+class AuthorsDataSource {
+  private loader = new DataLoader(async (keys: number[]) => {
+    console.log(`SELECT * FROM author WHERE id IN (${keys.join(",")})`);
+    const results = authors.filter((author) => keys.includes(author.id));
+    return keys.map((key: number) =>
+      results.find((author) => author.id === key)
+    );
+  });
+
+  async getAuthorBy(id: number) {
+    return this.loader.load(id);
+  }
+}
+
 interface ContextValue {
   dataSources: {
     posts: PostsDataSource;
     tags: TagsDataSource;
+    authors: AuthorsDataSource;
   };
 }
 
 const resolvers = {
   Query: {
     authors: () => getAuthors(),
+    posts: (_, { tags: filterTags }, { dataSources }) => {
+      console.log(`SELECT * FROM post`);
+
+      // タグフィルタリングがない場合は全posts返す
+      if (!filterTags || filterTags.length === 0) {
+        return posts;
+      }
+
+      // タグフィルタリングがある場合
+      const postIdsWithTags = tags
+        .filter(tag => filterTags.includes(tag.name))
+        .map(tag => tag.post_id);
+
+      const uniquePostIds = [...new Set(postIdsWithTags)];
+      return posts.filter(post => uniquePostIds.includes(post.id));
+    },
   },
   Author: {
     posts: (parent, _, { dataSources }) => {
@@ -63,6 +94,9 @@ const resolvers = {
   Post: {
     tags: (parent, _, { dataSources }) => {
       return dataSources.tags.getTagsBy(parent.id);
+    },
+    author: (parent, _, { dataSources }) => {
+      return dataSources.authors.getAuthorBy(parent.author_id);
     },
   },
 };
@@ -80,6 +114,7 @@ const { url } = await startStandaloneServer(apolloServer, {
       dataSources: {
         posts: new PostsDataSource(),
         tags: new TagsDataSource(),
+        authors: new AuthorsDataSource(),
       },
     };
   },

@@ -13,9 +13,28 @@ const resolvers = {
   Query: {
     authors: () =>
       Object.entries(db.users).map(([id, user]) => ({ id, ...user })),
+    posts: (_, { tags }) => {
+      const allPosts = Object.entries(db.blogs).map(([id, post]) => ({
+        id,
+        ...post,
+      }));
+
+      // タグフィルタリング
+      if (!tags || tags.length === 0) {
+        return allPosts;
+      }
+
+      return allPosts.filter(post =>
+        post.tags.some(tag => tags.includes(tag))
+      );
+    },
   },
   Post: {
     tags: ({ tags }) => tags.map((name) => ({ name })),
+    author: ({ author }) => {
+      const user = db.users[author];
+      return user ? { id: author, ...user } : null;
+    },
   },
   Author: {
     posts: ({ id }) =>
